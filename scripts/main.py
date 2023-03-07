@@ -5,13 +5,12 @@ __date__ = "2023/03/06"
 import pandas as pd
 
 from data_loader import parse_query, parse_reads
-from alignment import get_reads_to_align, get_reads_to_assemble
-from assembly2 import create_graph
-from nodes import get_nodes, get_start_and_stop
+from alignment import get_reads_to_assemble
+from assembly import create_graph
 from kmers import Kmer, create_reads_kmers
 
-query_seq = parse_query("query.FASTA.txt")
-read_dict = parse_reads("reads.FASTA.txt")
+query_seq = parse_query("./test_data/query.FASTA.txt")
+read_dict = parse_reads("./test_data/reads.FASTA.txt")
 
 
 
@@ -25,5 +24,5 @@ for kmer in kmers:
 graph = create_graph(kmers)
 graph_df = pd.DataFrame(graph, columns = ["source", "target"])
 # uncomment to save graph for visualization purposes 
-# graph_df.to_csv('graph.csv')
+graph_df.to_csv('./output/graph.csv')
 
