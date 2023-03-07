@@ -1,0 +1,16 @@
+>seq2
+GAACCT
+>seq1
+TACTGAA
+>seq3
+ACCTTG
+>seq6
+TGCACAGG
+>seq8
+ATAGGTC
+>seq4
+CTTGG
+>seq5
+ATGACAA
+>seq7
+ACAGGCCA
