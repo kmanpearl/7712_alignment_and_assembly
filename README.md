@@ -3,10 +3,9 @@
 This command line application aligns DNA sequence reads to a query sequence, then assembles contigs from all aligned sequences. 
 There are two main steps to this program, alignment and assembly. 
 
-1. Alignment: Using a default value of k = 5 the reads and query sequences divided into kmers. 
+1. Reads and query sequences are divided into kmers. 
 If an exact match between a read kmer and query sequence kmer is found, the alignment is extended using a dynamic programming algorithm. 
-Only alignments above a user inputed threshold (default = ??) are returned. 
-1. Assembly: A de Bruijn graph is created from kmers using a user specified k value (default = 10). 
+2. Assembly: A de Bruijn graph is created from k-1mers.
 Then a depth-first-search is used to traverse the graph and find all possible paths between start and stop nodes. 
 
 Note that at this time, only the alignment step is completed. 
