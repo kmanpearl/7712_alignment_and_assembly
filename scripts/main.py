@@ -14,7 +14,7 @@ parser = arg.ArgumentParser(description='Align sequence reads to a query sequenc
 required = parser.add_argument_group('required arguments')
 required.add_argument('--q', '-query_file', type=str, help='path to the query FASTA file', required = True)
 required.add_argument('--r', '-read_file', type=str, help='path to the reads FASTA file', required = True)
-parser.add_argument('--k', '-kmer_size', type=str, help='length of kmers', default = 10)
+parser.add_argument('--k', '-kmer_length', type=str, help='length of kmers', default = 10)
 parser.add_argument('--m', '-match_score', type=bool, help='alignment score for matching base pairs', default = 1)
 parser.add_argument('--mi', '-mismatch_score', type=bool, help='alignment score for non-matching base pairs', default = -1)
 parser.add_argument('--g', '-gap_score', type=bool, help='alignment score for introducing a gap', default = -1)
