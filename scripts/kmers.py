@@ -51,3 +51,11 @@ def create_query_kmers(k, query):
         kmers.append(kmer)
     return(kmers)
 
+def get_kmers(reads_to_assemble, k):
+    if len(reads_to_assemble) > 0:
+        kmers = create_reads_kmers(k, reads_to_assemble)
+        for kmer in kmers:
+            Kmer.define_prefix_and_sufix(kmer)
+        return(kmers)
+    else:
+        return None 
