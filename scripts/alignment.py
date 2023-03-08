@@ -40,12 +40,13 @@ def compare_sequences(query, sequence, match_score, gap_score, mismatch_score, t
     best_score_idx = (0,0)
     for i in range(1, len(query)+1):
         for j in range(1, len(sequence)+1):
-            scores[i][j] = max(
+            max_score = max(
                 0,
                 scores[i-1][j-1] + score(query[i-1], sequence[j-1], match_score, mismatch_score),
                 scores[i-1][j] + gap_score,
                 scores[i][j-1] + gap_score,
             )
+            scores[i][j] = max_score
             if scores[i][j] >= best_score: 
                 best_score = scores[i][j] 
                 best_score_idx = (i,j)
