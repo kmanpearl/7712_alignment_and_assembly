@@ -12,10 +12,10 @@ are assembled into contigs using a de Bruijn graph.
 
 import pandas as pd
 
-from alignment import get_reads_to_align, get_reads_to_assemble
-from assembly import create_graph
-from data_loader import parse_query, parse_reads
-from kmers import get_kmers
+from src.alignment import get_reads_to_align, get_reads_to_assemble
+from src.assembly import create_graph
+from src.data_loader import parse_query, parse_reads
+from src.kmers import get_kmers
 
 """
 parser = arg.ArgumentParser(description='Align sequence reads to a query sequence and assemble contigs from aligned reads')

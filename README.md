@@ -10,6 +10,8 @@ Then a depth-first-search is used to traverse the graph and find all possible pa
 
 Note that at this time, only the alignment step is completed. 
 
+## Dependencies 
+
 ## Installation 
 
 For convience, this applications makes use of an anaconda envrionment. 
@@ -33,39 +35,39 @@ To successfully use this application you must first activate the envrionment:
 
 To access documentation from the command line run:
 
-`python main.py -h`
+`python scripts/main.py -h`
 
-usage: main.py [-h] --q Q --r R [--k K] [--m M] [--mi MI] [--g G] [--t T] [--s S]
+```
+usage: main.py [-h] --q Q --r R [--ka KA] [--kb KB] [--m M] [--mi MI] [--g G] [--t T] [--s S]
 
 Align sequence reads to a query sequence and assemble contigs from aligned reads
 
 optional arguments:
-
   -h, --help            show this help message and exit
-
-  --k K, -kmer_length K   length of kmers
-
+  --ka KA, -alignment_kmer KA
+                        length of kmers to use for alignment
+  --kb KB, -assembly_kmer KB
+                        length of kmers to use for assembly
   --m M, -match_score M
                         alignment score for matching base pairs
-
   --mi MI, -mismatch_score MI
                         alignment score for non-matching base pairs
-
   --g G, -gap_score G   alignment score for introducing a gap
-
   --t T, -score_threshold T
                         minimum normalized score needed to be considered an alignment
-
-  --s S, -save S        if True, save a csv file of the graph
+  --s S, -save S        if True, save intermediate outputs
 
 required arguments:
-
   --q Q, -query_file Q  path to the query FASTA file
-
   --r R, -read_file R   path to the reads FASTA file
+```
 
-The default length to use when creating kmers is `10`. 
-This value can be changed using the optional argument `-kmer_size`. 
+The required arguments are `-query_file`: a FASTA file containing a single query sequence that you wish to align to and `-read_file`: a FASTA file containing all of the sequence reads that you wish to assemble and align against the query. The program only accepts DNA sequences reads containing the letters ATGC. 
+
+The default length to use when creating kmers for assembly is `5` for aligning sequence reads. 
+This value should be changed to `3` with the argument `-alignment_kmer` if you are running on the files in `test_data`. 
+It is recommended to keep this k value small. 
+The default value when creating kmers for assembly is `10` but if you are using the `test_data` this value should be changed to `5` using the `-assembly_kmer` argument. 
 The choice of kmer length must be less than the length of the shortest read. 
 
 The default scoring scheme used is `+1` for a match and `-1` for a mis-match or gap. 
@@ -73,7 +75,7 @@ These can be changed using the optional arguments `-match_score`, `-mismatch_sco
 This scoring scheme has been chosen for its simplicity; 
 however, many other scoring schemes have been developed and may be used instead. 
 
-vThe default for threshold used is 0.75. 
+The default for threshold used is `0.75`. 
 This means that to be considered an alignment a read must have a score (normalized for the length of the read) above 0.75. 
 The threshold can be changed using the  `--score_threshold` argument.
 
@@ -90,9 +92,8 @@ Column 1 is the source node and column two is the target node.
 
 ## Example Use Case 
 
-To run this program on the (very small) test data set with default parameters:
+To run this program on the (very small) test data set with default parameters run the following in the repo directory with the conda envrionment activated:
 
-`python scripts/main.py -q "data/QUERY.fasta" -r "data/READS.fatsa"`
+`python scripts/main.py -q "test_data/query.FASTA.txt" -r "test_data/reads.FASTA.txt" -ka 3 -kb 5 -s True`
 
-
-## Dependencies 
+This will run the program with default values and generate all intermediate outputs. 
