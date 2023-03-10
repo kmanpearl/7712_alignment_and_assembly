@@ -1,6 +1,6 @@
 # 7712_assembly_and_alignment
 
-This command line application aligns DNA sequence reads to a query sequence, then assembles contigs from all aligned reads. 
+Currently, this command line application aligns DNA sequence reads to a query sequence, then assembles contigs from all aligned reads. 
 There are two main steps to this program, alignment and assembly. 
 
 1. Alignment: Reads and query sequences are divided into kmers. 
@@ -10,6 +10,7 @@ the alignment is extended using a dynamic programming algorithm.
 Then a depth-first-search is used to traverse the graph and find all possible paths between start and stop nodes. 
 
 Note that at this time, only the alignment step is completed. 
+Once assmembly functions are completed the order of alignmnet and assembly will be switched. 
 
 ## Dependencies 
 
@@ -92,9 +93,11 @@ These can be changed using the optional arguments `-match_score`, `-mismatch_sco
 This scoring scheme has been chosen for its simplicity; 
 however, many other scoring schemes have been developed and may be used instead. 
 
-The default for threshold used is `0.75`. 
-This means that to be considered an alignment a read must have a score (normalized for the length of the read) above 0.75. 
-The threshold can be changed using the  `--score_threshold` argument.
+Alignment are created by dividing the best score in the alignment matrix by the length of the read. 
+Scores range from 0-1 where 0 represents no matching positions and 1 represents a perfect match. 
+The default for the score threshold used is `0.75`. 
+This means that to be considered an alignment, a read must have a score above 0.75. 
+The threshold can be changed using the  `-score_threshold` argument.
 
 The optional argument `-save` is set to `False` by default. 
 To save intermediate outputs change this to `True`.
@@ -103,13 +106,13 @@ The intermediate output files generated are:
 
 1. `graph.csv`: a two column csv file representing a directed graph.
 Column 1 is the source node and column two is the target node. 
-1. `fwd_alignment_scores.csv`: normalized alignment scores for each read (above the user specified threshold)
-2. `reverse_alignment_scores.csv`: normalized alignment scores for each reversed read (above the user specified threshold)
+1. `fwd_alignment_scores.csv`: normalized alignment scores for each read (only reported for reads above the user specified threshold)
+2. `reverse_alignment_scores.csv`: normalized alignment scores for each reversed read (only reported for reads above the user specified threshold)
 
 
 ## Example Use Case 
 
-To run this program on the (very small) test data set with default parameters run the following in the repo directory with the conda envrionment activated:
+To run this program on the (very small) test data set with default parameters run the following in the cloned repo directory, with the conda envrionment activated:
 
 `python main.py -q "sample_data/query.FASTA.txt" -r "sample_data/reads.FASTA.txt" -ka 3 -kb 5 -s True`
 
