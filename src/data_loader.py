@@ -54,12 +54,16 @@ def parse_reads(fp):
     with open(fp, "r") as file:
         lines = file.readlines()
         if len(lines) % 2 != 0:
-            raise Exception("Sequence reads must be a FASTA file")
+            raise Exception("Reads must be a FASTA file")
+        elif len(lines) == 2:
+            raise Exception(
+                "Reads FASTA file must contain more than one sequence to assemble"
+            )
         i = 0
         while i < len(lines):
             read_id = lines[i]
             if not read_id.startswith(">"):
-                raise Exception("Sequence reads must be a FASTA file")
+                raise Exception("Reads must be a FASTA file")
             # remove > from line and any trailing whitespace
             read_id = read_id[1:].strip()
             sequence = lines[i + 1].upper().strip()

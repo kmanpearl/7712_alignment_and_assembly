@@ -1,0 +1,4 @@
+seq 1 
+ATCG
+seq 2
+GCC

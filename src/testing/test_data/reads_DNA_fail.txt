@@ -1,0 +1,4 @@
+> seq1
+ACTGH
+> seq2
+GCC

@@ -4,13 +4,29 @@ This command line application aligns DNA sequence reads to a query sequence, the
 There are two main steps to this program, alignment and assembly. 
 
 1. Alignment: Reads and query sequences are divided into kmers. 
-If an exact match between a read kmer and query sequence kmer is found, the alignment is extended using a dynamic programming algorithm. 
+If an exact match between a read kmer and query sequence kmer is found, 
+the alignment is extended using a dynamic programming algorithm. 
 2. Assembly: A de Bruijn graph is created from k-1mers.
 Then a depth-first-search is used to traverse the graph and find all possible paths between start and stop nodes. 
 
 Note that at this time, only the alignment step is completed. 
 
 ## Dependencies 
+
+All dependencies are automatically downloaded during the installation process. They are as follows:
+```
+channels:
+  - anaconda
+  - conda-forge
+dependencies:
+  - python=3.9 
+  - pip
+  - numpy
+  - pandas
+  - networkx
+  - pip:
+    - pre-commit
+```
 
 ## Installation 
 
@@ -62,7 +78,8 @@ required arguments:
   --r R, -read_file R   path to the reads FASTA file
 ```
 
-The required arguments are `-query_file`: a FASTA file containing a single query sequence that you wish to align to and `-read_file`: a FASTA file containing all of the sequence reads that you wish to assemble and align against the query. The program only accepts DNA sequences reads containing the letters ATGC. 
+The required arguments are `-query_file`: a FASTA file containing a single query sequence that you wish to align to and `-read_file`: a FASTA file containing all of the sequence reads that you wish to assemble and align against the query. 
+The program only accepts DNA sequences reads containing the letters ATGC. 
 
 The default length to use when creating kmers for assembly is `5` for aligning sequence reads. 
 This value should be changed to `3` with the argument `-alignment_kmer` if you are running on the files in `test_data`. 
@@ -94,6 +111,6 @@ Column 1 is the source node and column two is the target node.
 
 To run this program on the (very small) test data set with default parameters run the following in the repo directory with the conda envrionment activated:
 
-`python scripts/main.py -q "test_data/query.FASTA.txt" -r "test_data/reads.FASTA.txt" -ka 3 -kb 5 -s True`
+`python main.py -q "sample_data/query.FASTA.txt" -r "sample_data/reads.FASTA.txt" -ka 3 -kb 5 -s True`
 
 This will run the program with default values and generate all intermediate outputs. 

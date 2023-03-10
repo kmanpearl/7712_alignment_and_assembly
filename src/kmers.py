@@ -15,8 +15,8 @@ class Kmer:
         self.start = start
         self.stop = stop
 
-    def __eq__(self, other):
-        return self.sequence == other.sequence
+    # def __eq__(self, other):
+    #    return self.sequence == other.sequence
 
     def define_prefix_and_sufix(self):
         self.prefix = self.sequence[:-1]

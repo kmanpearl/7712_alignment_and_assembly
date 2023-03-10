@@ -10,7 +10,7 @@ import csv
 import numpy as np
 import pandas as pd
 
-from kmers import create_query_kmers, create_reads_kmers
+from src.kmers import create_query_kmers, create_reads_kmers
 
 
 def get_reads_to_align(query_seq, read_dict, k=5):
@@ -33,7 +33,7 @@ def get_reads_to_align(query_seq, read_dict, k=5):
     return reads_to_align, no_alignment
 
 
-def score(base1, base2, match_score, mismatch_score):
+def score_matches(base1, base2, match_score, mismatch_score):
     if base1 == base2:
         return match_score
     else:
@@ -52,7 +52,9 @@ def compare_sequences(
             max_score = max(
                 0,
                 scores[i - 1][j - 1]
-                + score(query[i - 1], sequence[j - 1], match_score, mismatch_score),
+                + score_matches(
+                    query[i - 1], sequence[j - 1], match_score, mismatch_score
+                ),
                 scores[i - 1][j] + gap_score,
                 scores[i][j - 1] + gap_score,
             )
@@ -65,14 +67,16 @@ def compare_sequences(
     # TODO: this may miss sequences that align to the end of the query
     # figure out how to make sure those get included
     if best_score / len(sequence) < threshold:
-        scores = None
+        best_score = None
         alignment = False
+        return best_score, alignment
     # the end of the read must align to somewhere in the query
     # or anywhere in the query must align to the end of the read
     # if only part of the read aligns to the middle of the query it is not a true alignment
     elif best_score_idx[0] != len(query) and best_score_idx[1] != len(sequence):
-        scores = None
+        best_score = None
         alignment = False
+        return best_score, alignment
     return best_score / len(sequence), alignment
 
 
@@ -110,11 +114,11 @@ def get_reads_to_assemble(
         raise Exception("No reads align to query sequence")
 
     if save == True:
-        with open("./output/test_fwd_alignment_scores.csv", "w") as csv_file:
+        with open("output/fwd_alignment_scores.csv", "w") as csv_file:
             writer = csv.writer(csv_file)
             for key, value in fwd_score_dict.items():
                 writer.writerow([key, value])
-        with open("./output/test_reverse_alignment_scores.csv", "w") as csv_file:
+        with open("output/reverse_alignment_scores.csv", "w") as csv_file:
             writer = csv.writer(csv_file)
             for key, value in reverse_score_dict.items():
                 writer.writerow([key, value])
