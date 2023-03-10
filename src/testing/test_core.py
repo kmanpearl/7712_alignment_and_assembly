@@ -166,7 +166,7 @@ class TestKmerClasses(unittest.TestCase):
         self.assertEqual(kmer.sequence, expected_sequence)
         self.assertEqual(kmer.start, expected_start)
         self.assertEqual(kmer.stop, expected_stop)
-        # elf.assertEqual(kmer_ps.prefix, expected_prefix)
+        # self.assertEqual(kmer_ps.prefix, expected_prefix)
         # self.assertEqual(kmer_ps.sufix, expected_sufix)
 
     def test_query_kmers(self):

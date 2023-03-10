@@ -6,7 +6,7 @@ There are two main steps to this program, alignment and assembly.
 1. Alignment: Reads and query sequences are divided into kmers. 
 If an exact match between a read kmer and query sequence kmer is found, 
 the alignment is extended using a dynamic programming algorithm. 
-2. Assembly: A de Bruijn graph is created from k-1mers.
+2. Assembly: A de Bruijn graph is created with k-1mers as nodes and kmers as directed edges.
 Then a depth-first-search is used to traverse the graph and find all possible paths between start and stop nodes. 
 
 Note that at this time, only the alignment step is completed. 
@@ -103,8 +103,8 @@ The intermediate output files generated are:
 
 1. `graph.csv`: a two column csv file representing a directed graph.
 Column 1 is the source node and column two is the target node. 
-1. `fwd_alignment_scores.csv`: normalized alignment scores for each read 
-2. `reverse_alignment_scores.csv`: normalized alignment scores for each reversed read 
+1. `fwd_alignment_scores.csv`: normalized alignment scores for each read (above the user specified threshold)
+2. `reverse_alignment_scores.csv`: normalized alignment scores for each reversed read (above the user specified threshold)
 
 
 ## Example Use Case 
