@@ -2,5 +2,6 @@
 data/*
 output/*
 test_output/*
+sample_out/*
 nohup.out
 .DS_Store
