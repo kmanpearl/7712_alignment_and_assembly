@@ -1,7 +1,8 @@
 # 7712_assembly_and_alignment
 
-This command assembles DNA sequence reads from a FASTA file. 
+This command line program assembles DNA sequence reads from a FASTA file. 
 The assembled contigs are then aligned againts a query sequence.
+There are two main components to this program.
 
 1. **Assembly:** A de Bruijn graph is created with k-1mers as nodes and kmers as directed edges.
 Then a depth-first-search is used to traverse the graph and find all possible paths between start and stop nodes.

@@ -10,15 +10,14 @@ import pandas as pd
 
 sys.path.append(os.path.abspath("../"))
 from alignment import alignment, compare_sequences, get_contigs_to_align, score_matches
-from assembly import (
-    Contig,
+from assembly import Contig, get_contig_kmers
+from data_loader import parse_query, parse_reads
+from graph import (
     create_adjacency_matrix,
     create_graph,
     find_all_paths,
     find_start_stop_nodes,
-    get_contig_kmers,
 )
-from data_loader import parse_query, parse_reads
 from kmers import create_query_kmers, create_reads_kmers
 
 
@@ -169,9 +168,9 @@ class TestKmerClasses(unittest.TestCase):
         self.assertEqual(kmer.direction, expected_direction)
 
 
-class TestAssemblyFuncions(unittest.TestCase):
+class TestReaderFunctions(unittest.TestCase):
     """
-    Testing all functions and classes needed for assmebly
+    testing of functions related to construction and traversal of de brujin graph
     """
 
     def test_graph(self):
@@ -243,6 +242,12 @@ class TestAssemblyFuncions(unittest.TestCase):
             path_sequence.append(path.path)
         expected_output = [["ACT", "CTG", "TGA", "GAC"]]
         self.assertEqual(path_sequence, expected_output)
+
+
+class TestAssemblyFuncions(unittest.TestCase):
+    """
+    Testing all functions and classes needed for assmebly
+    """
 
     def test_get_contig_kmers(self):
         """

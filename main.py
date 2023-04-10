@@ -14,8 +14,9 @@ import argparse as arg
 import datetime
 
 from src.alignment import alignment
-from src.assembly import assembly, graph_traversal
+from src.assembly import assembly
 from src.data_loader import parse_query, parse_reads
+from src.graph import graph_traversal
 from src.kmers import get_all_kmers
 from src.output import save_required_ouputs
 
