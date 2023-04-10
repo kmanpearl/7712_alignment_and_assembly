@@ -1,10 +1,38 @@
+__author__ = "Keenan Manpearl"
+__date__ = "2023/04/09"
+
+"""
+Functions needed to assemble de bruijn graphs   
+"""
+
 import datetime
 
 import pandas as pd
 
 
+class Paths:
+    """
+    holds information about the path through the graph between a start and stop node
+    """
+
+    def __init__(self, contig_id, start_node, stop_node, path):
+        self.contig_id = contig_id
+        self.start_node = start_node
+        self.stop_node = stop_node
+        self.path = path
+
+
 # find edges between nodes
 def create_graph(kmers):
+    """
+    create a de bruijin graph
+
+    Args:
+        kmers (list): instances of class Kmer that make up all reads
+
+    Returns:
+        list: list of touples containing a source node and a target node
+    """
     edges = []
     for k1 in range(len(kmers)):
         for k2 in range(1, len(kmers)):
@@ -16,6 +44,17 @@ def create_graph(kmers):
 
 # turn edges into an adjaceny matrix
 def create_adjacency_matrix(kmers, edges, save):
+    """
+    turn edge list into an adjacency matrix
+
+    Args:
+        kmers (list): instances of class Kmers present in the reads
+        edges (list): touples of start and stop nodes
+        save (bool): whether to matrix as a csv
+
+    Returns:
+        pandas.DataFrame: adjacency matrix where source node are rows and target nodes are columns
+    """
     nodes = []
     for kmer in kmers:
         if kmer.sequence not in nodes:
@@ -59,26 +98,15 @@ def find_start_stop_nodes(adj_matrix):
     return list(start_nodes), list(stop_nodes)
 
 
-class Paths:
-    def __init__(self, contig_id, start_node, stop_node, path):
-        self.contig_id = contig_id
-        self.start_node = start_node
-        self.stop_node = stop_node
-        self.path = path
-
-
 def find_all_paths(adj_matrix):
     """
-    Finds all possible paths in a directed graph represented by an adjacency matrix.
+    Finds all possible paths in a directed graph.
 
     Parameters:
         adj_matrix (pandas.DataFrame): The adjacency matrix of the graph.
 
     Returns:
-        A dictionary of all possible paths, keyed by the tuple (start_node, stop_node), where
-        start_node and stop_node are the labels of the start and stop nodes, respectively. Each value
-        in the dictionary is a list of lists, where each inner list represents a path from the start
-        node to the stop node.
+        list : instance of class Path representing all possible paths between start and stop nodes
     """
     # find all possible start and stop nodes
     start_nodes, stop_nodes = find_start_stop_nodes(adj_matrix)
@@ -126,6 +154,16 @@ def find_all_paths(adj_matrix):
 
 
 def graph_traversal(kmers, save):
+    """
+    wrapper function for creating and traversing graph
+
+    Args:
+        kmers (list): instances of class Kmer represening all read kmers
+        save (bool): whether to save adjacency matrix as csv file
+
+    Returns:
+        list: instance of class Path that stores all possible paths through the graph
+    """
     edges = create_graph(kmers)
     adj_matrix = create_adjacency_matrix(kmers, edges, save)
     all_paths = find_all_paths(adj_matrix)

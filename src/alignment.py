@@ -14,6 +14,20 @@ from src.kmers import create_contig_kmers, create_query_kmers
 
 
 def get_contigs_to_align(query_seq, contigs, k):
+    """
+    find all contigs that have a kmer match to the query sequence
+
+    Args:
+        query_seq (str): sequence to align against
+        contigs (list): instances of class Contigs containing all assemble reads
+        k (int): kmer size
+
+    Raises:
+        Exception: no kmer matches
+
+    Returns:
+        touple : list of instances of class Contig that contain a kmer match, list of class Contigs that do not share a kmer match
+    """
     query_kmers = create_query_kmers(query_seq, k)
     contig_kmers = create_contig_kmers(contigs, k)
     kmer_match = []
@@ -40,6 +54,18 @@ def get_contigs_to_align(query_seq, contigs, k):
 
 
 def score_matches(base1, base2, match_score, mismatch_score):
+    """
+    determine if two base pairs match and return the proper score
+
+    Args:
+        base1 (str): base pair
+        base2 (str): base pair
+        match_score (_type_): _description_
+        mismatch_score (_type_): _description_
+
+    Returns:
+        int: score for the alignment
+    """
     if base1 == base2:
         return match_score
     else:
@@ -49,6 +75,20 @@ def score_matches(base1, base2, match_score, mismatch_score):
 def compare_sequences(
     query, sequence, match_score, gap_score, mismatch_score, threshold
 ):
+    """
+    generate an alignmnet score between two sequences
+
+    Args:
+        query (str): query sequence to align against
+        sequence (str): contig to align
+        match_score (int): score for matching bases
+        gap_score (int): penalty for introducing a gap
+        mismatch_score (int): penalty for a mismatch
+        threshold (float): minimum score to be considered an alignmnet (between 0-1)
+
+    Returns:
+        touple: float of alignment score, bool of whether alignmnet was above the threshold
+    """
     alignment = True
     scores = np.zeros((len(query) + 1, len(sequence) + 1))
     best_score = 0
@@ -83,6 +123,24 @@ def compare_sequences(
 def alignment(
     query_seq, contigs, match_score, gap_score, mismatch_score, threshold, save
 ):
+    """
+    align all contigs against the query
+
+    Args:
+        query_seq (str): query sequence to align against
+        contigs (list): instances of class Contig containing all assembled contigs
+        match_score (int): score for matching bases
+        gap_score (int): penalty for introducing a gap
+        mismatch_score (int): penalty for a mismatch
+        threshold (float): minimum score to be considered an alignmnet (between 0-1)
+        save (bool): whether to save csv of all alignment scores (for true alignments)
+
+    Raises:
+        Exception: _description_
+
+    Returns:
+        _type_: _description_
+    """
     no_alignment = []
     score_dict = {}
     aligned_contigs = []

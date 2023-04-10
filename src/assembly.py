@@ -7,6 +7,10 @@ Functions needed to assemble sequence reads
 
 
 class Contig:
+    """
+    holds information about assembled contigs
+    """
+
     def __init__(self, contig_id, aligned_reads, sequence, direction):
         self.contig_id = contig_id
         self.sequence = sequence
@@ -18,6 +22,10 @@ class Contig:
 
 
 class AlignedRead:
+    """
+    holds information about reads that have been aligned to a contig
+    """
+
     def __init__(
         self,
         read_id,
@@ -38,6 +46,16 @@ class AlignedRead:
 
 
 def get_contig_kmers(all_paths, read_kmers):
+    """
+    get the id of all kmers that make up contigs
+
+    Args:
+        all_paths (list): instances of class Path that represent all possible paths through the graph
+        read_kmers (list): instances of class Kmer that make up all reads
+
+    Returns:
+        dict: contig ids (keys) and ids of all kmers that make up contig (values)
+    """
     contig_kmers = {}
     for path in all_paths:
         contig_id = path.contig_id
@@ -52,14 +70,17 @@ def get_contig_kmers(all_paths, read_kmers):
     return contig_kmers
 
 
-def get_contig_start(kmer, kmers, contig_start):
-    overlap = 0
-    while kmers[kmer - overlap - 1].sufix == kmers[kmer].prefix:
-        overlap += 1
-    return contig_start + overlap
-
-
 def assemble_contigs(contig_kmers, read_dict):
+    """
+    assemble reads into contigs based on their kmers
+
+    Args:
+        contig_kmers (dict ): contig ids (keys) and all kmers that make up the contig (values)
+        read_dict (dict): read_id (keys) and sequence (values)
+
+    Returns:
+        list: instances of class Contigs
+    """
     contigs = []
     for contig_id, kmers in contig_kmers.items():
         aligned_reads = []
@@ -71,7 +92,6 @@ def assemble_contigs(contig_kmers, read_dict):
             read_num = kmers[kmer].read_id
             if read_num != read_id:
                 read_stop = kmers[kmer - 1].stop
-                # contig_start = get_contig_start(kmer-1, kmers, contig_start)
                 contig_stop = contig_start + len(sequence)
                 sequence = read_dict[read_id][read_start:read_stop]
                 read = AlignedRead(
@@ -98,8 +118,18 @@ def assemble_contigs(contig_kmers, read_dict):
     return contigs
 
 
-def assembly(path_dict, read_kmers, read_dict):
-    contig_kmers = get_contig_kmers(path_dict, read_kmers)
+def assembly(paths, read_kmers, read_dict):
+    """
+    assemble all contigs
+
+    Args:
+        paths (list): instances of class Path that represent all possible paths through the graph
+        read_kmers (list): instances of class Kmer that make up all reads
+        read_dict (dict): read_id (keys) and sequence (values)
+
+    Returns:
+        list: instances of class Contigs
+    """
+    contig_kmers = get_contig_kmers(paths, read_kmers)
     contigs = assemble_contigs(contig_kmers, read_dict)
-    # rvs_contigs = get_reverse_contigs(contigs, read_dict)
     return contigs

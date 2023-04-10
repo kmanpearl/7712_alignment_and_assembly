@@ -1,3 +1,10 @@
+__author__ = "Keenan Manpearl"
+__date__ = "2023/04/09"
+
+"""
+Functions needed to format output files    
+"""
+
 import pandas as pd
 
 

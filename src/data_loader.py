@@ -8,17 +8,19 @@ Functions needed to read in input files
 
 def parse_query(fp):
     """
-    Parameters
-    ----------
-    fp : STR
-        file path to query FASTA file
-        query sequence must only contain the leters ATGC
+    parse query sequence from fasta file
 
-    Returns
-    -------
-    line : STR
-        query sequence parsed from FASTA file
+    Args:
+        fp (str): path to query fasta
 
+    Raises:
+        Exception: is less than two lines
+        Exception: if more than two lines
+        Exception: if file contains any letters besided ACTG
+        Exception: if sequence id lines do not start with '>'
+
+    Returns:
+        str: sequence of query
     """
     nucleotides = set("ATCG")
     with open(fp, "r") as file:
@@ -38,16 +40,19 @@ def parse_query(fp):
 
 def parse_reads(fp):
     """
-    Parameters
-    ----------
-    fp : STR
-        file path to sequence reads FASTA file
-        reads must only contain the leters ATGC
+    create dictionaries of reads
 
-    Returns
-    -------
-    read_dict : DICT
-        read_id (keys) and sequence (values)
+    Args:
+        fp (str): path to reads fasta file
+
+    Raises:
+        Exception: if unequal number of lines
+        Exception: if only one read
+        Exception: if sequence id lines do not start with '>'
+        Exception: if file contains any letters besided ACTG
+
+    Returns:
+        dicts: dictionaries of forward and reverse reads with read id (key) and sequence (value)
     """
     nucleotides = set("ATCG")
     fwd_read_dict = {}
