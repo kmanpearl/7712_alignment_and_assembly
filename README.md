@@ -2,15 +2,15 @@
 
 This command line program assembles DNA sequence reads from a FASTA file. 
 The assembled contigs are then aligned againts a query sequence.
-There are two main components to this program.
+There are two main components to this program are:
 
 1. **Assembly:** A de Bruijn graph is created with k-1mers as nodes and kmers as directed edges.
 Then a depth-first-search is used to traverse the graph and find all possible paths between start and stop nodes.
-Each path is used to assemble contigs 
-1. **Alignment:** Reads and assembled contigs are divided into kmers. 
+Each path is used to assemble contigs.
+2. **Alignment:** The query sequence and assembled contigs are divided into kmers. 
 If an exact match between a read kmer and query sequence kmer is found, 
 the alignment is extended using a dynamic programming algorithm. 
-All scores above a user specified threshold are considered an alignment. 
+All alignment scores above a user specified threshold are considered a true alignment. 
 
 
 
@@ -18,22 +18,18 @@ All scores above a user specified threshold are considered an alignment.
 ## Dependencies 
 
 All dependencies are automatically downloaded during the installation process. They are as follows:
+
 ```
-channels:
-  - anaconda
-  - conda-forge
-dependencies:
   - python=3.9 
   - pip
   - numpy
   - pandas
-  - pip:
-    - pre-commit
+  - pre-commit
 ```
 
 ## Installation 
 
-For convience, this applications makes use of an anaconda envrionment. 
+For convience and reproducability, this applications makes use of an anaconda envrionment. 
 If you do not already have anaconda installed instructions can be found [here](https://docs.anaconda.com/anaconda/install/). 
 
 First, clone this repository to your current directy be executing the following from the terminal:
@@ -53,8 +49,8 @@ To successfully use this application you must first activate the envrionment:
 
 Currently the file pathing is inflexible.
 The output directory named `output` must exist.
-If this directory is preexisting, any files in it with the same name as ouput files will be overwritten.
-To create the output directory:
+If this directory is preexisting, any files in it with the same name as ouput files will be overwritten. To prevent this, move all files in the `output` directory into a new directory.
+To create the output directory if it does not exist:
 
 `mkdir output`
 
@@ -69,6 +65,10 @@ usage: main.py [-h] --q Q --r R [--k K] [--m M] [--mi MI] [--g G] [--t T] [--s S
 
 Assemble sequence reads and align to a query
 
+required arguments:
+  --q Q, -query_file Q  path to the query FASTA file
+  --r R, -read_file R   path to the reads FASTA file
+
 optional arguments:
   -h, --help            show this help message and exit
   --k K, -kmer_size K   length of kmers: must be shorter than the shortest read
@@ -82,21 +82,19 @@ optional arguments:
                         value must be between 0-1
   --s S, -save S        if True, save intermediate outputs
 
-required arguments:
-  --q Q, -query_file Q  path to the query FASTA file
-  --r R, -read_file R   path to the reads FASTA file
 ```
 
 The required arguments are `-query_file`: a FASTA file containing a single query sequence that you wish to align to and `-read_file`: a FASTA file containing all of the sequence reads that you wish to assemble and align against the query. 
-The reads file must contain more than one sequence.
+The query file may only contain one sequence, while the reads file must contain more than one sequence.
 The program only accepts DNA sequences reads containing the letters ATGC.
 Any other characters, such as those used to represent ambiguos base pairs, will raise an exception.  
 
-
 The default length to use when creating kmers is `15`. 
 This value should be changed to `5` with the argument `-kmer_size` if you are running on the files in `test_data`. 
-It is recommended to keep this k value small. 
 If the length of kmer is shorter than the smallest sequence read it will raise an exception. 
+Choice of kmer length should reflect the similarity between sequences.
+For sequences with more variation, a smaller k value will be more likely to capture all alignments.
+For sequences with little variation a larger k value will reduce the number of sequences selected for alignment and thus the runtime of the program.
 
 The default scoring scheme used is `+1` for a match and `-1` for a mis-match or gap. 
 These can be changed using the optional arguments `-match_score`, `-mismatch_score`, and `-gap_score`, respectively. 
@@ -105,9 +103,11 @@ however, many other scoring schemes have been developed and may be used instead.
 
 Alignment scores are created by dividing the best score in the alignment matrix by the length of the read. 
 Scores range from 0-1 where 0 represents no matching positions and 1 represents a perfect match. 
-The default for the score threshold used is `0.5`. 
-This means that to be considered an alignment, a read must have a score above 0.5. 
+The default for the score threshold used is `0.75`. 
+This means that to be considered an alignment, a read must be more than 75% similar to the query sequence.
 The threshold can be changed using the  `-score_threshold` argument.
+Like kmer lenght, the score threshold shouold reflect the similarity between sequences.
+The more related the sequences are the higher the threshold that should be used.
 
 The optional argument `-save` is set to `False` by default. 
 To save intermediate outputs change this to `True`.
