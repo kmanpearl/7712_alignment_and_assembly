@@ -50,7 +50,8 @@ def parse_reads(fp):
         read_id (keys) and sequence (values)
     """
     nucleotides = set("ATCG")
-    read_dict = {}
+    fwd_read_dict = {}
+    rvs_read_dict = {}
     with open(fp, "r") as file:
         lines = file.readlines()
         if len(lines) % 2 != 0:
@@ -69,6 +70,8 @@ def parse_reads(fp):
             sequence = lines[i + 1].upper().strip()
             if set(sequence) > nucleotides:
                 raise Exception("Reads must be DNA sequences")
-            read_dict[read_id] = sequence
+            fwd_read_dict[read_id] = sequence
+            rvs_read_dict[read_id] = sequence[::-1]
             i += 2
-    return read_dict
+
+    return fwd_read_dict, rvs_read_dict

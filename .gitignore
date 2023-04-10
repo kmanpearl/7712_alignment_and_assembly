@@ -1,5 +1,6 @@
 *pycache*
 data/*
 output/*
+test_output/*
 nohup.out
 .DS_Store

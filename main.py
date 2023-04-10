@@ -11,13 +11,13 @@ are assembled into contigs using a de Bruijn graph.
 """
 
 import argparse as arg
+import datetime
 
-import pandas as pd
-
-from src.alignment import get_reads_to_align, get_reads_to_assemble
-from src.assembly import create_graph
+from src.alignment import alignment
+from src.assembly import assembly, graph_traversal
 from src.data_loader import parse_query, parse_reads
-from src.kmers import get_kmers
+from src.kmers import get_all_kmers
+from src.output import save_required_ouputs
 
 parser = arg.ArgumentParser(
     description="Align sequence reads to a query sequence and assemble contigs from aligned reads"
@@ -30,18 +30,11 @@ required.add_argument(
     "--r", "-read_file", type=str, help="path to the reads FASTA file", required=True
 )
 parser.add_argument(
-    "--ka",
-    "-alignment_kmer",
+    "--k",
+    "-kmer_size",
     type=int,
-    help="length of kmers to use for alignment",
-    default=5,
-)
-parser.add_argument(
-    "--kb",
-    "-assembly_kmer",
-    type=int,
-    help="length of kmers to use for assembly",
-    default=10,
+    help="length of kmers: must be shorter than the shortest read",
+    default=15,
 )
 parser.add_argument(
     "--m",
@@ -65,11 +58,11 @@ parser.add_argument(
     default=-1,
 )
 parser.add_argument(
-    "--st",
+    "--t",
     "-score_threshold",
     type=float,
-    help="minimum normalized score needed to be considered an alignment",
-    default=0.75,
+    help="minimum normalized score needed to be considered an alignment: value must be between 0-1",
+    default=0.5,
 )
 parser.add_argument(
     "--s", "-save", type=bool, help="if True, save intermediate outputs", default=False
@@ -78,45 +71,30 @@ args = parser.parse_args()
 
 
 query_seq = parse_query(args.q)
-read_dict = parse_reads(args.r)
-k_alignment = args.ka
-k_assembly = args.kb
+print(f"{datetime.datetime.now()}: parsed query files")
+read_dict, rvs_read_dict = parse_reads(args.r)
+print(f"{datetime.datetime.now()}: parsed reads files")
+k = args.k
 match_score = args.m
 gap_score = args.g
 mismatch_score = args.mi
-threshold = args.st
+threshold = args.t
 save = args.s
 
 
-"""
-# for testing purposes
-query_seq = parse_query("sample_data/query.FASTA.txt")
-read_dict = parse_reads("sample_data/reads.FASTA.txt")
-k_alignment = 3
-k_assembly = 5
-match_score = 1
-gap_score = -1
-mismatch_score = -1
-threshold = 0.75
-save = True
-"""
-# TODO: new function, modify to include reverse reads
-reads_to_align, no_alignment = get_reads_to_align(query_seq, read_dict, k_assembly)
-# no_alignment = []
-fwd_reads_to_assemble, reverse_reads_to_assemble, no_alignment = get_reads_to_assemble(
-    query_seq,
-    reads_to_align,
-    no_alignment,
-    match_score,
-    gap_score,
-    mismatch_score,
-    threshold,
-    save,
+read_kmers = get_all_kmers(read_dict, rvs_read_dict, k)
+print(f"{datetime.datetime.now()}: created kmers")
+path_dict = graph_traversal(read_kmers, save)
+all_contigs = assembly(path_dict, read_kmers, read_dict)
+aligned_contigs, no_alignment = alignment(
+    query_seq=query_seq,
+    contigs=all_contigs,
+    match_score=match_score,
+    gap_score=gap_score,
+    mismatch_score=mismatch_score,
+    threshold=threshold,
+    save=save,
 )
-fwd_kmers = get_kmers(fwd_reads_to_assemble, k_alignment)
-reverse_kmers = get_kmers(reverse_reads_to_assemble, k_alignment)
-# TODO: add reverse kmers to graph
-graph = create_graph(fwd_kmers)
-if save == True:
-    graph_df = pd.DataFrame(graph, columns=["source", "target"])
-    graph_df.to_csv("output/graph.csv")
+print(f"{datetime.datetime.now()}: formatting output")
+save_required_ouputs(aligned_contigs)
+print(f"{datetime.datetime.now()}: done")

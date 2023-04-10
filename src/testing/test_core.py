@@ -6,11 +6,20 @@ import os
 import sys
 import unittest
 
+import pandas as pd
+
 sys.path.append(os.path.abspath("../"))
-from alignment import compare_sequences, score_matches
-from assembly import create_graph
+from alignment import alignment, compare_sequences, get_contigs_to_align, score_matches
+from assembly import (
+    Contig,
+    create_adjacency_matrix,
+    create_graph,
+    find_all_paths,
+    find_start_stop_nodes,
+    get_contig_kmers,
+)
 from data_loader import parse_query, parse_reads
-from kmers import Kmer, create_query_kmers, create_reads_kmers
+from kmers import create_query_kmers, create_reads_kmers
 
 
 class TestReaderFunctions(unittest.TestCase):
@@ -24,9 +33,11 @@ class TestReaderFunctions(unittest.TestCase):
         """
         test that the expected ouput is returned
         """
-        reads = parse_reads("testing/test_data/true_reads.txt")
-        expected_output = {"seq1": "ATGC", "seq2": "GCC"}
-        self.assertEqual(reads, expected_output)
+        fwd_read_dict, rvs_read_dict = parse_reads("testing/test_data/true_reads.txt")
+        expected_fwd_output = {"seq1": "ATGC", "seq2": "GCC"}
+        expected_rvs_output = {"seq1": "CGTA", "seq2": "CCG"}
+        self.assertEqual(fwd_read_dict, expected_fwd_output)
+        self.assertEqual(rvs_read_dict, expected_rvs_output)
 
     def test_reads_length_fail(self):
         """
@@ -100,6 +111,163 @@ class TestReaderFunctions(unittest.TestCase):
         self.assertRaises(Exception, parse_query, "testing/test_data/query_ID_fail.txt")
 
 
+class TestKmerClasses(unittest.TestCase):
+    """
+    test all functions and classes used to create kmers
+    """
+
+    def test_read_kmers(self):
+        """
+        test the creation of kmers from reads
+        """
+        read_dict = {"seq1": "ACTGAC"}
+        kmers = create_reads_kmers(read_dict, 3, 0, 1)
+        kmer_order = []
+        for kmer in kmers[0]:
+            kmer_order.append(kmer.sequence)
+        kmer = kmers[0][0]
+        expected_read_id = "seq1"
+        expected_id = 0
+        expected_sequence = "ACT"
+        expected_start = 0
+        expected_stop = 3
+        expected_prefix = "AC"
+        expected_sufix = "CT"
+        expected_direction = 1
+        expected_order = ["ACT", "CTG", "TGA", "GAC"]
+        self.assertEqual(kmer.read_id, expected_read_id)
+        self.assertEqual(kmer.id, expected_id)
+        self.assertEqual(kmer.sequence, expected_sequence)
+        self.assertEqual(kmer.start, expected_start)
+        self.assertEqual(kmer.stop, expected_stop)
+        self.assertEqual(kmer.prefix, expected_prefix)
+        self.assertEqual(kmer.sufix, expected_sufix)
+        self.assertEqual(kmer.direction, expected_direction)
+        self.assertEqual(kmer_order, expected_order)
+
+    def test_query_kmers(self):
+        """
+        test the creation of kmers from query sequence
+        """
+        kmers = create_query_kmers("ACTG", 3)
+        kmer = kmers[0]
+        expected_read_id = "query"
+        expected_id = 0
+        expected_sequence = "ACT"
+        expected_start = 0
+        expected_stop = 3
+        expected_prefix = "AC"
+        expected_sufix = "CT"
+        expected_direction = 1
+        self.assertEqual(kmer.read_id, expected_read_id)
+        self.assertEqual(kmer.id, expected_id)
+        self.assertEqual(kmer.sequence, expected_sequence)
+        self.assertEqual(kmer.start, expected_start)
+        self.assertEqual(kmer.stop, expected_stop)
+        self.assertEqual(kmer.prefix, expected_prefix)
+        self.assertEqual(kmer.sufix, expected_sufix)
+        self.assertEqual(kmer.direction, expected_direction)
+
+
+class TestAssemblyFuncions(unittest.TestCase):
+    """
+    Testing all functions and classes needed for assmebly
+    """
+
+    def test_graph(self):
+        """
+        test the creation of edge lists from list of kmers
+        """
+
+        kmers = create_reads_kmers({"seq1": "ACTGAC"}, 3, 0, 1)
+        edges = create_graph(kmers[0])
+        edge_kmers = []
+        for edge in edges:
+            edge_kmers.append((edge[0].sequence, edge[1].sequence))
+        expected_output = [("ACT", "CTG"), ("CTG", "TGA"), ("TGA", "GAC")]
+        self.assertEqual(edge_kmers, expected_output)
+
+    def test_adjacency_matrix(self):
+        """
+        test the creation of an adjacency matrix from an edge list
+        """
+        kmers = create_reads_kmers({"seq1": "ACTGAC"}, 3, 0, 1)
+        edges = create_graph(kmers[0])
+        adj_matrix = create_adjacency_matrix(kmers[0], edges, False)
+        expected_output = pd.DataFrame(
+            {
+                "ACT": [0, 0, 0, 0],
+                "CTG": [1, 0, 0, 0],
+                "TGA": [0, 1, 0, 0],
+                "GAC": [0, 0, 1, 0],
+            }
+        )
+        expected_output.index = ["ACT", "CTG", "TGA", "GAC"]
+        self.assertEqual(adj_matrix.equals(expected_output), True)
+
+    def test_start_stop_nodes(self):
+        """
+        test to find all possible start and stop nodes
+        """
+        adj_matrix = pd.DataFrame(
+            {
+                "ACT": [0, 0, 0, 0],
+                "CTG": [1, 0, 0, 0],
+                "TGA": [0, 1, 0, 0],
+                "GAC": [0, 0, 1, 0],
+            }
+        )
+        adj_matrix.index = ["ACT", "CTG", "TGA", "GAC"]
+        start_nodes, stop_nodes = find_start_stop_nodes(adj_matrix)
+        expected_start_node = ["ACT"]
+        expected_stop_node = ["GAC"]
+        self.assertEqual(start_nodes, expected_start_node)
+        self.assertEqual(stop_nodes, expected_stop_node)
+
+    def test_find_paths(self):
+        """
+        test to find paths through graph
+        """
+        adj_matrix = pd.DataFrame(
+            {
+                "ACT": [0, 0, 0, 0],
+                "CTG": [1, 0, 0, 0],
+                "TGA": [0, 1, 0, 0],
+                "GAC": [0, 0, 1, 0],
+            }
+        )
+        adj_matrix.index = ["ACT", "CTG", "TGA", "GAC"]
+        paths = find_all_paths(adj_matrix)
+        path_sequence = []
+        for path in paths:
+            path_sequence.append(path.path)
+        expected_output = [["ACT", "CTG", "TGA", "GAC"]]
+        self.assertEqual(path_sequence, expected_output)
+
+    def test_get_contig_kmers(self):
+        """
+        test to find all kmers in a contig
+        """
+        adj_matrix = pd.DataFrame(
+            {
+                "ACT": [0, 0, 0, 0],
+                "CTG": [1, 0, 0, 0],
+                "TGA": [0, 1, 0, 0],
+                "GAC": [0, 0, 1, 0],
+            }
+        )
+        adj_matrix.index = ["ACT", "CTG", "TGA", "GAC"]
+        paths = find_all_paths(adj_matrix)
+        kmers = create_reads_kmers({"seq1": "ACTGAC"}, 3, 0, 1)
+        contig_kmers = get_contig_kmers(paths, kmers[0])
+        kmer_ids = []
+        for path in contig_kmers.values():
+            for kmer in path:
+                kmer_ids.append(kmer.id)
+        expected_output = [0, 1, 2, 3]
+        self.assertEqual(kmer_ids, expected_output)
+
+
 class TestAlignmentFunctions(unittest.TestCase):
     """
     test all functions related to sequence alignment
@@ -137,70 +305,37 @@ class TestAlignmentFunctions(unittest.TestCase):
         expected_output = (None, False)
         self.assertEqual(alignment, expected_output)
 
-
-class TestKmerClasses(unittest.TestCase):
-    """
-    test all functions and classes used to create kmers
-    """
-
-    def test_read_kmers(self):
+    def test_get_contigs_to_align(self):
         """
-        test the creation of kmers from reads
+        test function to get sequences to align based on kmer matches to the query
         """
-        # TODO: creating prefix and sufix turns object into NoneType
-        # I have confirmed this method works when executed in my code
-        # need to figure out why unittest is failing
-        read_dict = {"seq1": "ACTG"}
-        kmers = create_reads_kmers(3, read_dict)
-        kmer = kmers[0]
-        # kmer_ps = Kmer.define_prefix_and_sufix(kmer)
-        expected_read_id = "seq1"
-        expected_read = "ACTG"
-        expected_sequence = "ACT"
-        expected_start = 0
-        expected_stop = 3
-        # expected_prefix = "AC"
-        # expected_sufix = "CT"
-        self.assertEqual(kmer.read_id, expected_read_id)
-        self.assertEqual(kmer.read, expected_read)
-        self.assertEqual(kmer.sequence, expected_sequence)
-        self.assertEqual(kmer.start, expected_start)
-        self.assertEqual(kmer.stop, expected_stop)
-        # self.assertEqual(kmer_ps.prefix, expected_prefix)
-        # self.assertEqual(kmer_ps.sufix, expected_sufix)
+        contig = [Contig(1, [0, 1, 2], "ACTGAC", 1)]
+        contigs_to_align, no_alignment = get_contigs_to_align("ACTGAC", contig, 4)
+        expected_output = contig
+        self.assertEqual(contigs_to_align, expected_output)
 
-    def test_query_kmers(self):
+    def test_no_contigs_to_align(self):
         """
-        test the creation of kmers from query sequence
+        test that an exception is raised if their are no reads with kmer matches to query
         """
-        kmers = create_query_kmers(3, "ACTG")
-        kmer = kmers[0]
-        expected_read_id = "query"
-        expected_read = "ACTG"
-        expected_sequence = "ACT"
-        expected_start = 0
-        expected_stop = 3
-        self.assertEqual(kmer.read_id, expected_read_id)
-        self.assertEqual(kmer.read, expected_read)
-        self.assertEqual(kmer.sequence, expected_sequence)
-        self.assertEqual(kmer.start, expected_start)
-        self.assertEqual(kmer.stop, expected_stop)
+        contig = [Contig(1, [0, 1, 2], "ACTGAC", 1)]
+        self.assertRaises(Exception, parse_reads, "TACGA", contig, 4)
 
+    def test_alignment(self):
+        """
+        test that matching reads align to the query
+        """
+        contig = [Contig(1, [0, 1, 2], "ACTGAC", 1)]
+        aligned_reads, no_alignment = alignment("ACTGAC", contig, 1, -1, -1, 0.5, False)
+        expected_output = contig
+        self.assertEqual(aligned_reads, expected_output)
 
-class TestAssemblyFuncions(unittest.TestCase):
-    """
-    Testing all functions and classes needed for assmebly
-    """
-
-    # TODO: this function uses prefixes and sufixes
-    # cannot test until I get method to work within unittesting
-    # def test_graph(self):
-    #    kmers = create_query_kmers(3, "ACTG")
-    #    for kmer in kmers:
-    #        kmer = Kmer.define_prefix_and_sufix(kmer)
-    #    edges = create_graph(kmers)
-    #    expected_output = [("ACT, CTG")]
-    #    self.assertEqual(edges, expected_output)
+    def test_alignment_false(self):
+        """
+        test that an exception is raised if no reads align to query
+        """
+        contig = [Contig(1, [0, 1, 2], "TACGA", 1)]
+        self.assertRaises(Exception, alignment, "ACTGAC", contig, 1, -1, -1, 0.5, False)
 
 
 # python3 -m unittest testing.test_core
