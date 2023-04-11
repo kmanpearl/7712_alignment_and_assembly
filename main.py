@@ -30,12 +30,19 @@ required.add_argument(
 required.add_argument(
     "--r", "-read_file", type=str, help="path to the reads FASTA file", required=True
 )
+required.add_argument(
+    "--o",
+    "-output_directory",
+    type=str,
+    help="directory to store all generated output files",
+    required=True,
+)
 parser.add_argument(
     "--k",
     "-kmer_size",
     type=int,
     help="length of kmers: must be shorter than the shortest read",
-    default=15,
+    default=30,
 )
 parser.add_argument(
     "--m",
@@ -63,7 +70,7 @@ parser.add_argument(
     "-score_threshold",
     type=float,
     help="minimum normalized score needed to be considered an alignment: value must be between 0-1",
-    default=0.5,
+    default=0.75,
 )
 parser.add_argument(
     "--s", "-save", type=bool, help="if True, save intermediate outputs", default=False
@@ -75,6 +82,7 @@ query_seq = parse_query(args.q)
 print(f"{datetime.datetime.now()}: parsed query files")
 read_dict, rvs_read_dict = parse_reads(args.r)
 print(f"{datetime.datetime.now()}: parsed reads files")
+out_dir = args.o
 k = args.k
 match_score = args.m
 gap_score = args.g
@@ -85,17 +93,19 @@ save = args.s
 
 read_kmers = get_all_kmers(read_dict, rvs_read_dict, k)
 print(f"{datetime.datetime.now()}: created kmers")
-path_dict = graph_traversal(read_kmers, save)
-all_contigs = assembly(path_dict, read_kmers, read_dict)
-aligned_contigs, no_alignment = alignment(
+paths = graph_traversal(read_kmers, save, out_dir)
+all_contigs = assembly(paths, read_kmers)
+aligned_contigs = alignment(
     query_seq=query_seq,
     contigs=all_contigs,
+    k=k,
     match_score=match_score,
     gap_score=gap_score,
     mismatch_score=mismatch_score,
     threshold=threshold,
     save=save,
+    out_dir=out_dir,
 )
 print(f"{datetime.datetime.now()}: formatting output")
-save_required_ouputs(aligned_contigs)
+save_required_ouputs(aligned_contigs, out_dir)
 print(f"{datetime.datetime.now()}: done")

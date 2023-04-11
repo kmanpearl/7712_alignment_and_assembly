@@ -47,13 +47,6 @@ To successfully use this application you must first activate the envrionment:
 `conda activate align_and_assemble`
 
 
-Currently the file pathing is inflexible.
-The output directory named `output` must exist.
-If this directory is preexisting, any files in it with the same name as ouput files will be overwritten. To prevent this, move all files in the `output` directory into a new directory.
-To create the output directory if it does not exist:
-
-`mkdir output`
-
 ## Usage 
 
 To access documentation from the command line run:
@@ -61,13 +54,16 @@ To access documentation from the command line run:
 `python scripts/main.py -h`
 
 ```
-usage: main.py [-h] --q Q --r R [--k K] [--m M] [--mi MI] [--g G] [--t T] [--s S]
+usage: main.py [-h] --q Q --r R --o O [--k K] [--m M] [--mi MI] [--g G]
+               [--t T] [--s S]
 
 Assemble sequence reads and align to a query
 
 required arguments:
   --q Q, -query_file Q  path to the query FASTA file
   --r R, -read_file R   path to the reads FASTA file
+  --o O, -output_directory O
+                        directory to store all generated output files
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -89,12 +85,13 @@ The query file may only contain one sequence, while the reads file must contain 
 The program only accepts DNA sequences reads containing the letters ATGC.
 Any other characters, such as those used to represent ambiguos base pairs, will raise an exception.  
 
-The default length to use when creating kmers is `15`. 
-This value should be changed to `5` with the argument `-kmer_size` if you are running on the files in `test_data`. 
+The default length to use when creating kmers is `30`. 
+This value can be changed with the argument `-kmer_size` 
 If the length of kmer is shorter than the smallest sequence read it will raise an exception. 
 Choice of kmer length should reflect the similarity between sequences.
 For sequences with more variation, a smaller k value will be more likely to capture all alignments.
-For sequences with little variation a larger k value will reduce the number of sequences selected for alignment and thus the runtime of the program.
+For sequences with little variation, a larger k value will be more stringent in its selection criteria. 
+This reduces the number of sequences selected for alignment, thus the runtime of the program.
 
 The default scoring scheme used is `+1` for a match and `-1` for a mis-match or gap. 
 These can be changed using the optional arguments `-match_score`, `-mismatch_score`, and `-gap_score`, respectively. 
@@ -117,9 +114,7 @@ The intermediate output files generated are `adjacency_matrix.csv` and `alignmen
 
 ## Output
 
-All outputs will be generated in the directory `output` which must exist.
-If the directory does not exist, please make one by running `mkdir output` from the terminal when in the project directory. 
-
+All outputs will be generated in the directory specified by `-output_dir`.
 The output files generated are:
 
 1. `ALLELES.fasta`: a fasta file containing the sequence of the longest contig that aligned to the query
@@ -142,5 +137,5 @@ Rows are source nodes and columns target nodes.
 
 To run this program on the (very small) test data set run the following in the cloned repo directory, with the conda envrionment activated:
 
-`python main.py -q "sample_data/query.FASTA.txt" -r "sample_data/reads.FASTA.txt" -k 5 -s True`
+`python main.py -q "sample_data/fake_QUERY.fasta" -r "sample_data/fake_READS.fasta" -o output -s True`
 
