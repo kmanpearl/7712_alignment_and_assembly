@@ -21,30 +21,6 @@ class Contig:
         self.kmers = kmers
 
 
-class AlignedRead:
-    """
-    holds information about reads that have been aligned to a contig
-    """
-
-    def __init__(
-        self,
-        read_id,
-        contig_id,
-        sequence,
-        read_start,
-        read_stop,
-        contig_start,
-        contig_stop,
-    ):
-        self.read_id = read_id
-        self.contig_id = contig_id
-        self.sequence = sequence
-        self.read_start = read_start
-        self.read_stop = read_stop
-        self.contig_start = contig_start
-        self.contig_stop = contig_stop
-
-
 def get_contig_kmers(all_paths, read_kmers):
     """
     get the id of all kmers that make up contigs
@@ -54,63 +30,54 @@ def get_contig_kmers(all_paths, read_kmers):
         read_kmers (list): instances of class Kmer that make up all reads
 
     Returns:
-        dict: contig ids (keys) and ids of all kmers that make up contig (values)
-    """
+        dict: contig ids (keys) and ids of all kmers that make up contig (values)"""
     contig_kmers = {}
     for path in all_paths:
         contig_id = path.contig_id
+        node_kmers = {}
         for node in path.path:
+            kmers = []
             for kmer in read_kmers:
-                if node == kmer.sequence:
-                    if contig_id in contig_kmers.keys():
-                        contig_kmers[contig_id].append(kmer)
-                    else:
-                        contig_kmers[contig_id] = [kmer]
-                    break
+                if kmer.sequence == node:
+                    kmers.append(kmer)
+            kmers.sort(key=lambda x: x.id)
+            node_kmers[node] = kmers
+        if contig_id in contig_kmers.keys():
+            contig_kmers[contig_id].append(node_kmers)
+        else:
+            contig_kmers[contig_id] = node_kmers
     return contig_kmers
 
 
-def assemble_contigs(contig_kmers, read_dict):
-    """
-    assemble reads into contigs based on their kmers
-
-    Args:
-        contig_kmers (dict ): contig ids (keys) and all kmers that make up the contig (values)
-        read_dict (dict): read_id (keys) and sequence (values)
-
-    Returns:
-        list: instances of class Contigs
-    """
+def assemble_contigs(contig_kmers):
     contigs = []
-    for contig_id, kmers in contig_kmers.items():
-        aligned_reads = []
-        sequence = kmers[0].sequence
-        read_id = kmers[0].read_id
-        read_start = kmers[0].start
-        contig_start = 0
-        for kmer in range(1, len(kmers)):
-            read_num = kmers[kmer].read_id
-            if read_num != read_id:
-                read_stop = kmers[kmer - 1].stop
-                contig_stop = contig_start + len(sequence)
-                sequence = read_dict[read_id][read_start:read_stop]
-                read = AlignedRead(
-                    read_id=read_id,
-                    contig_id=contig_id,
-                    sequence=sequence,
-                    read_start=read_start,
-                    read_stop=read_stop,
-                    contig_start=contig_start,
-                    contig_stop=contig_stop,
-                )
-                read_id = read_num
-                read_start = kmers[kmer].start
-                contig_start = contig_stop + 1
-                aligned_reads.append(read)
-        sequence += kmers[kmer - 1].sequence[-1]
+    for contig_id, node_dict in contig_kmers.items():
+        reads = {}
+        sequence = str()
+        contig_position = 0
+        for node, kmers in node_dict.items():
+            for kmer in kmers:
+                read_id = kmer.read_id
+                if read_id not in reads.keys():
+                    reads[read_id] = {
+                        "sseqid": read_id,
+                        "qseqid": contig_id,
+                        "sstart": kmer.start,
+                        "send": kmer.stop,
+                        "qstart": contig_position,
+                        "qend": contig_position,
+                    }
+                else:
+                    reads[read_id]["send"] = kmer.stop
+                    reads[read_id]["qend"] = contig_position
+                if len(sequence) == 0:
+                    sequence = node[:-1]
+                    contig_position = len(sequence)
+            sequence += node[-1]
+            contig_position += 1
         contig = Contig(
             contig_id=contig_id,
-            aligned_reads=aligned_reads,
+            aligned_reads=reads,
             sequence=sequence,
             direction=1,
         )
@@ -118,18 +85,17 @@ def assemble_contigs(contig_kmers, read_dict):
     return contigs
 
 
-def assembly(paths, read_kmers, read_dict):
+def assembly(paths, read_kmers):
     """
     assemble all contigs
 
     Args:
         paths (list): instances of class Path that represent all possible paths through the graph
         read_kmers (list): instances of class Kmer that make up all reads
-        read_dict (dict): read_id (keys) and sequence (values)
 
     Returns:
         list: instances of class Contigs
     """
     contig_kmers = get_contig_kmers(paths, read_kmers)
-    contigs = assemble_contigs(contig_kmers, read_dict)
+    contigs = assemble_contigs(contig_kmers)
     return contigs

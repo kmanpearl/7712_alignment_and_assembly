@@ -43,14 +43,14 @@ def create_graph(kmers):
 
 
 # turn edges into an adjaceny matrix
-def create_adjacency_matrix(kmers, edges, save):
+def create_adjacency_matrix(kmers, edges, save, out_dir):
     """
     turn edge list into an adjacency matrix
 
     Args:
         kmers (list): instances of class Kmers present in the reads
         edges (list): touples of start and stop nodes
-        save (bool): whether to matrix as a csv
+        save (bool): whether to save matrix as a csv
 
     Returns:
         pandas.DataFrame: adjacency matrix where source node are rows and target nodes are columns
@@ -67,7 +67,7 @@ def create_adjacency_matrix(kmers, edges, save):
     adj_matrix = adj_matrix.astype(int)
     print(f"{datetime.datetime.now()}: created adjacency matrix")
     if save:
-        adj_matrix.to_csv("output/adjacency_matrix.csv")
+        adj_matrix.to_csv(f"{out_dir}/adjacency_matrix.csv")
     return adj_matrix
 
 
@@ -120,7 +120,6 @@ def find_all_paths(adj_matrix):
             # skip pairs where the start and stop nodes are the same
             if start_node == stop_node:
                 continue
-
             visited = set()
             stack = [(start_node, [start_node])]
             paths = []
@@ -131,6 +130,7 @@ def find_all_paths(adj_matrix):
                     paths.append(path)
                     continue
                 if node in visited:
+                    # if we get to a cycle, discard the path
                     continue
                 visited.add(node)
                 for neighbor in adj_matrix.loc[node, :][
@@ -149,11 +149,13 @@ def find_all_paths(adj_matrix):
                     )
                     all_paths.append(p)
                     contig_id += 1
+            # elif not paths:
+            #    raise Exception("No paths through the graph found")
     print(f"{datetime.datetime.now()}: found {len(all_paths)} paths through the graph")
     return all_paths
 
 
-def graph_traversal(kmers, save):
+def graph_traversal(kmers, save, out_dir):
     """
     wrapper function for creating and traversing graph
 
@@ -165,6 +167,6 @@ def graph_traversal(kmers, save):
         list: instance of class Path that stores all possible paths through the graph
     """
     edges = create_graph(kmers)
-    adj_matrix = create_adjacency_matrix(kmers, edges, save)
+    adj_matrix = create_adjacency_matrix(kmers, edges, save, out_dir)
     all_paths = find_all_paths(adj_matrix)
     return all_paths

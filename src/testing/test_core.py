@@ -10,7 +10,7 @@ import pandas as pd
 
 sys.path.append(os.path.abspath("../"))
 from alignment import alignment, compare_sequences, get_contigs_to_align, score_matches
-from assembly import Contig, get_contig_kmers
+from assembly import Contig, assemble_contigs, get_contig_kmers
 from data_loader import parse_query, parse_reads
 from graph import (
     create_adjacency_matrix,
@@ -168,7 +168,7 @@ class TestKmerClasses(unittest.TestCase):
         self.assertEqual(kmer.direction, expected_direction)
 
 
-class TestReaderFunctions(unittest.TestCase):
+class TestGraphFunctions(unittest.TestCase):
     """
     testing of functions related to construction and traversal of de brujin graph
     """
@@ -192,7 +192,7 @@ class TestReaderFunctions(unittest.TestCase):
         """
         kmers = create_reads_kmers({"seq1": "ACTGAC"}, 3, 0, 1)
         edges = create_graph(kmers[0])
-        adj_matrix = create_adjacency_matrix(kmers[0], edges, False)
+        adj_matrix = create_adjacency_matrix(kmers[0], edges, False, None)
         expected_output = pd.DataFrame(
             {
                 "ACT": [0, 0, 0, 0],
@@ -267,10 +267,34 @@ class TestAssemblyFuncions(unittest.TestCase):
         contig_kmers = get_contig_kmers(paths, kmers[0])
         kmer_ids = []
         for path in contig_kmers.values():
-            for kmer in path:
-                kmer_ids.append(kmer.id)
+            for kmer in path.values():
+                kmer_ids.append(kmer[0].id)
         expected_output = [0, 1, 2, 3]
         self.assertEqual(kmer_ids, expected_output)
+
+    def test_assemble_contigs(self):
+        """
+        test assembly contigs
+        """
+        adj_matrix = pd.DataFrame(
+            {
+                "ACT": [0, 0, 0, 0],
+                "CTG": [1, 0, 0, 0],
+                "TGA": [0, 1, 0, 0],
+                "GAC": [0, 0, 1, 0],
+            }
+        )
+        adj_matrix.index = ["ACT", "CTG", "TGA", "GAC"]
+        paths = find_all_paths(adj_matrix)
+        kmers = create_reads_kmers({"seq1": "ACTGAC"}, 3, 0, 1)
+        contig_kmers = get_contig_kmers(paths, kmers[0])
+        contigs = assemble_contigs(contig_kmers)
+        contig_id = contigs[0].contig_id
+        sequence = contigs[0].sequence
+        expected_id = 0
+        expected_sequence = "ACTGAC"
+        self.assertEqual(contig_id, expected_id)
+        self.assertEqual(sequence, expected_sequence)
 
 
 class TestAlignmentFunctions(unittest.TestCase):
@@ -315,7 +339,7 @@ class TestAlignmentFunctions(unittest.TestCase):
         test function to get sequences to align based on kmer matches to the query
         """
         contig = [Contig(1, [0, 1, 2], "ACTGAC", 1)]
-        contigs_to_align, no_alignment = get_contigs_to_align("ACTGAC", contig, 4)
+        contigs_to_align = get_contigs_to_align("ACTGAC", contig, 4)
         expected_output = contig
         self.assertEqual(contigs_to_align, expected_output)
 
@@ -331,7 +355,7 @@ class TestAlignmentFunctions(unittest.TestCase):
         test that matching reads align to the query
         """
         contig = [Contig(1, [0, 1, 2], "ACTGAC", 1)]
-        aligned_reads, no_alignment = alignment("ACTGAC", contig, 1, -1, -1, 0.5, False)
+        aligned_reads = alignment("ACTGAC", contig, 3, 1, -1, -1, 0.5, False, None)
         expected_output = contig
         self.assertEqual(aligned_reads, expected_output)
 
@@ -340,7 +364,9 @@ class TestAlignmentFunctions(unittest.TestCase):
         test that an exception is raised if no reads align to query
         """
         contig = [Contig(1, [0, 1, 2], "TACGA", 1)]
-        self.assertRaises(Exception, alignment, "ACTGAC", contig, 1, -1, -1, 0.5, False)
+        self.assertRaises(
+            Exception, alignment, "ACTGAC", contig, 3, 1, -1, -1, 0.5, False, None
+        )
 
 
 # python3 -m unittest testing.test_core

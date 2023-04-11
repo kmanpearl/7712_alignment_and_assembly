@@ -87,8 +87,8 @@ def get_all_kmers(read_dict, rvs_read_dict, k):
         list : instances of class Kmers that make up all forward and reverse reads
     """
     fwd_kmers, id = create_reads_kmers(read_dict, k, 0, 1)
-    rvs_kmers, id = create_reads_kmers(rvs_read_dict, k, id, -1)
-    return fwd_kmers + rvs_kmers
+    # rvs_kmers, id = create_reads_kmers(rvs_read_dict, k, id, -1)
+    return fwd_kmers  # + rvs_kmers
 
 
 def create_contig_kmers(contigs, k):
