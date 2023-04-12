@@ -32,7 +32,7 @@ All dependencies are automatically downloaded during the installation process. T
 For convience and reproducability, this applications makes use of an anaconda envrionment. 
 If you do not already have anaconda installed instructions can be found [here](https://docs.anaconda.com/anaconda/install/). 
 
-First, clone this repository to your current directy be executing the following from the terminal:
+First, clone this repository to your current directy by executing the following from the terminal:
 
 `git clone https://github.com/kmanpearl/7712_alignment_and_assembly.git`
 
@@ -142,6 +142,9 @@ The optional output files generated are:
 1. `adjacency_matrix.csv`: a table containing the adjacency matrix made from the graph. 
 Rows are source nodes and columns target nodes. 
 1. `alignment_scores.csv`: normalized alignment scores for each read (only reported for reads above the user specified threshold)
+
+
+Examples of all ouput files generated can be found in `output_fake_data`.
 
 ## Example Use Case 
 
