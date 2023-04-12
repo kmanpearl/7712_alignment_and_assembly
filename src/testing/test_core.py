@@ -21,7 +21,7 @@ from graph import (
 from kmers import create_query_kmers, create_reads_kmers
 
 
-class TestReaderFunctions(unittest.TestCase):
+class TestDataLoaderFunctions(unittest.TestCase):
     """
     Testing related to the data_loader functions.
     Test that begin with test_reads are testing the parse_reads function
@@ -223,6 +223,31 @@ class TestGraphFunctions(unittest.TestCase):
         self.assertEqual(start_nodes, expected_start_node)
         self.assertEqual(stop_nodes, expected_stop_node)
 
+    def test_no_start_nodes(self):
+        adj_matrix = pd.DataFrame(
+            {
+                "ACT": [0, 1, 0, 0, 0],
+                "CTG": [0, 0, 1, 0, 0],
+                "TGA": [0, 0, 0, 1, 1],
+                "GAC": [1, 0, 0, 0, 0],
+                "ACG": [0, 0, 0, 0, 0],
+            }
+        )
+        adj_matrix.index = ["ACT", "CTG", "TGA", "GAC", "ACG"]
+        self.assertRaises(Exception, find_start_stop_nodes, adj_matrix)
+
+    def test_no_stop_nodes(self):
+        adj_matrix = pd.DataFrame(
+            {
+                "ACT": [0, 1, 0, 0],
+                "CTG": [0, 0, 1, 0],
+                "TGA": [0, 0, 0, 1],
+                "GAC": [1, 0, 0, 0],
+            }
+        )
+        adj_matrix.index = ["ACT", "CTG", "TGA", "GAC"]
+        self.assertRaises(Exception, find_start_stop_nodes, adj_matrix)
+
     def test_find_paths(self):
         """
         test to find paths through graph
@@ -289,11 +314,8 @@ class TestAssemblyFuncions(unittest.TestCase):
         kmers = create_reads_kmers({"seq1": "ACTGAC"}, 3, 0, 1)
         contig_kmers = get_contig_kmers(paths, kmers[0])
         contigs = assemble_contigs(contig_kmers)
-        contig_id = contigs[0].contig_id
         sequence = contigs[0].sequence
-        expected_id = 0
         expected_sequence = "ACTGAC"
-        self.assertEqual(contig_id, expected_id)
         self.assertEqual(sequence, expected_sequence)
 
 

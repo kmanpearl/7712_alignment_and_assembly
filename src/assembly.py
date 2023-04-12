@@ -65,7 +65,7 @@ def assemble_contigs(contig_kmers):
                         "sstart": kmer.start,
                         "send": kmer.stop,
                         "qstart": contig_position,
-                        "qend": contig_position,
+                        "qend": contig_position + len(node) - 1,
                     }
                 else:
                     reads[read_id]["send"] = kmer.stop

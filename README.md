@@ -80,13 +80,23 @@ optional arguments:
 
 ```
 
-The required arguments are `-query_file`: a FASTA file containing a single query sequence that you wish to align to and `-read_file`: a FASTA file containing all of the sequence reads that you wish to assemble and align against the query. 
+The required arguments are 
+
+`-query_file`: a FASTA file containing a single query sequence that you wish to align to and 
+
+`-read_file`: a FASTA file containing all of the sequence reads that you wish to assemble and align against the query. 
+`-output_directory`: directory name to store all outputs generated. 
+The directory must exist already. 
+To create the directory run `mkdir <output_directory>` in the terminal window.
+
+
 The query file may only contain one sequence, while the reads file must contain more than one sequence.
 The program only accepts DNA sequences reads containing the letters ATGC.
 Any other characters, such as those used to represent ambiguos base pairs, will raise an exception.  
 
 The default length to use when creating kmers is `30`. 
-This value can be changed with the argument `-kmer_size` 
+This value can be changed with the argument `-kmer_size`.
+
 If the length of kmer is shorter than the smallest sequence read it will raise an exception. 
 Choice of kmer length should reflect the similarity between sequences.
 For sequences with more variation, a smaller k value will be more likely to capture all alignments.
@@ -103,7 +113,7 @@ Scores range from 0-1 where 0 represents no matching positions and 1 represents 
 The default for the score threshold used is `0.75`. 
 This means that to be considered an alignment, a read must be more than 75% similar to the query sequence.
 The threshold can be changed using the  `-score_threshold` argument.
-Like kmer lenght, the score threshold shouold reflect the similarity between sequences.
+Like kmer length, the score threshold shouold reflect the similarity between sequences.
 The more related the sequences are the higher the threshold that should be used.
 
 The optional argument `-save` is set to `False` by default. 
@@ -135,7 +145,11 @@ Rows are source nodes and columns target nodes.
 
 ## Example Use Case 
 
-To run this program on the (very small) test data set run the following in the cloned repo directory, with the conda envrionment activated:
+To run this program on the (very small) test data set and generate intermediate outputs, run the following in the cloned repo: 
+
+`mkdir output`
+
+`conda activate align_and_assemble`
 
 `python main.py -q "sample_data/fake_QUERY.fasta" -r "sample_data/fake_READS.fasta" -o output -s True`
 

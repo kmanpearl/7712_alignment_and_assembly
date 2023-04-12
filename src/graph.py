@@ -92,6 +92,10 @@ def find_start_stop_nodes(adj_matrix):
             start_nodes.remove(node)
         if any(adj_matrix.loc[node, :] != 0):
             stop_nodes.remove(node)
+    if len(start_nodes) == 0:
+        raise Exception("No start nodes found, graph is cyclic")
+    if len(stop_nodes) == 0:
+        raise Exception("No stop nodes found, graph is cyclic")
 
     # convert the sets to lists and return the result
     print(f"{datetime.datetime.now()}: found all start and stop nodes")
@@ -149,8 +153,6 @@ def find_all_paths(adj_matrix):
                     )
                     all_paths.append(p)
                     contig_id += 1
-            # elif not paths:
-            #    raise Exception("No paths through the graph found")
     print(f"{datetime.datetime.now()}: found {len(all_paths)} paths through the graph")
     return all_paths
 
